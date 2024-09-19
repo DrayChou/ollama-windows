@@ -24,6 +24,20 @@
 .\ollama_start.bat
 ```
 
+## 常用命令
+
+### 检查 Ollama 版本
+
+```sh
+ollama --version
+```
+
+### 批量更新 Ollama models
+
+```powershell
+ollama list | Select-Object -Skip 2 | ForEach-Object { $name = $_.Split()[0]; Write-Host "Pulling model: $name"; ollama pull $name }
+```
+
 ## 贡献
 
 欢迎提交问题和请求。如果您有任何建议或改进，请随时提交 Pull Request。
