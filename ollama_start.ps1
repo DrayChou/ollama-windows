@@ -442,11 +442,26 @@ if ($update_required) {    if (-not $skip_download) {
     Write-Output "更新完成！"
 }
 
-# 设置环境变量： models 目录到当前目录下
-$env:OLLAMA_MODELS = "$PWD\models"
+# ========== 环境变量配置 ==========
+Write-Output "========== 环境变量配置 =========="
 
-# 设置环境变量： 设置 host 0.0.0.0
+# 确保 models 目录存在
+$modelsPath = Join-Path $PWD "models"
+if (-not (Test-Path $modelsPath)) {
+    Write-Output "创建 models 目录: $modelsPath"
+    New-Item -ItemType Directory -Path $modelsPath -Force | Out-Null
+}
+
+# 设置环境变量并验证
+Write-Output "配置 Ollama 环境变量..."
+
+# Models 目录配置
+$env:OLLAMA_MODELS = $modelsPath
+Write-Output "✓ OLLAMA_MODELS = $env:OLLAMA_MODELS"
+
+# Host 配置 (允许外部访问)
 $env:OLLAMA_HOST = "0.0.0.0"
+Write-Output "✓ OLLAMA_HOST = $env:OLLAMA_HOST"
 
 # 检查是否有 AMD 集显，如果有则设置 HSA_OVERRIDE_GFX_VERSION
 $gpus = Get-WmiObject -Class Win32_VideoController | Where-Object { $_.Name -notlike "*Basic*" -and $_.Name -notlike "*Generic*" }
@@ -454,7 +469,64 @@ $hasAmdIgpu = $gpus | Where-Object { $_.Name -match "AMD.*Graphics|Radeon.*Graph
 if ($hasAmdIgpu) {
     Write-Output "检测到 AMD 集显，设置 HSA_OVERRIDE_GFX_VERSION 环境变量"
     $env:HSA_OVERRIDE_GFX_VERSION = "11.0.0"
+    Write-Output "✓ HSA_OVERRIDE_GFX_VERSION = $env:HSA_OVERRIDE_GFX_VERSION"
 }
 
-# 启动 ollama 服务
-Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c .\ollama.exe start"
+Write-Output "================================"
+
+# 构建环境变量字符串，用于传递给子进程
+$envVars = @()
+$envVars += "OLLAMA_MODELS=$env:OLLAMA_MODELS"
+$envVars += "OLLAMA_HOST=$env:OLLAMA_HOST"
+if ($env:HSA_OVERRIDE_GFX_VERSION) {
+    $envVars += "HSA_OVERRIDE_GFX_VERSION=$env:HSA_OVERRIDE_GFX_VERSION"
+}
+
+# 创建启动脚本，确保环境变量被正确传递
+$startScript = @"
+@echo off
+echo 启动 Ollama 服务...
+echo 环境变量配置:
+$($envVars | ForEach-Object { "echo   $_" } | Out-String)
+echo.
+
+rem 设置环境变量
+$($envVars | ForEach-Object { "set $_" } | Out-String)
+
+rem 启动 Ollama
+echo 正在启动 Ollama...
+ollama.exe start
+"@
+
+# 写入临时启动脚本
+$startScript | Out-File -FilePath ".\start_ollama.bat" -Encoding ASCII -Force
+
+Write-Output "正在启动 Ollama 服务..."
+Write-Output "环境变量将传递给 Ollama 进程"
+
+# 使用批处理文件启动，确保环境变量正确传递
+Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c start_ollama.bat"
+
+# 等待几秒钟让服务启动
+Start-Sleep -Seconds 3
+
+# 验证 Ollama 是否启动成功
+Write-Output "验证 Ollama 服务状态..."
+try {
+    $testOutput = .\ollama.exe list 2>&1
+    if ($testOutput -match "NAME\s+ID\s+SIZE\s+MODIFIED") {
+        Write-Output "✓ Ollama 服务启动成功！"
+        Write-Output "✓ 可以访问: http://localhost:11434"
+        Write-Output "✓ Models 目录: $modelsPath"
+    } else {
+        Write-Output "⚠️ Ollama 服务可能还在启动中..."
+        Write-Output "请稍等几秒钟后检查服务状态"
+    }
+} catch {
+    Write-Output "⚠️ 无法立即验证服务状态，这是正常的"
+    Write-Output "Ollama 服务正在后台启动..."
+}
+
+Write-Output ""
+Write-Output "🎉 脚本执行完成！"
+Write-Output "💡 如需停止 Ollama 服务，请运行: taskkill /f /im ollama.exe"
