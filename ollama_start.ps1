@@ -1,4 +1,4 @@
-# 设置输出编码为 UTF-8
+﻿# 设置输出编码为 UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
@@ -26,10 +26,18 @@ $download_url = $json.assets | Where-Object { $_.name -eq "ollama-windows-amd64.
 if (-Not $ollama_exists) {
     Write-Output "未找到 ollama.exe，正在下载最新版本..."
     $update_required = $true
-} else {
-    # 获取本地版本号
+} else {    # 获取本地版本号
     $local_version_output = .\ollama.exe --version 2>&1
-    $local_version = $local_version_output | Select-String -Pattern "ollama version is [0-9]*\.[0-9]*\.[0-9]*|client version is [0-9]*\.[0-9]*\.[0-9]*" | ForEach-Object { $_ -replace ".*version is ", "" }
+    
+    # 将输出转换为字符串并提取版本号
+    $version_string = $local_version_output | Out-String
+    if ($version_string -match "ollama version is ([0-9]+\.[0-9]+\.[0-9]+)") {
+        $local_version = $matches[1]
+    } else {
+        Write-Output "无法解析本地版本号，强制更新"
+        Write-Output "调试：版本字符串内容 = $version_string"
+        $local_version = "0.0.0"
+    }
 
     # 调试输出本地版本号
     Write-Output "本地版本号输出: $local_version_output"
@@ -38,12 +46,28 @@ if (-Not $ollama_exists) {
     # 调试输出最新版本号
     Write-Output "最新版本号: $latest_version"
 
+    # 版本号比较函数
+    function Compare-Version($version1, $version2) {
+        $v1 = [Version]$version1
+        $v2 = [Version]$version2
+        return $v1.CompareTo($v2)
+    }
+
     # 比较版本号
-    if ($local_version -eq $latest_version) {
-        Write-Output "当前已经是最新版本: $local_version"
-        $update_required = $false
-    } else {
-        Write-Output "发现新版本: $latest_version，当前版本: $local_version"
+    try {
+        $comparison = Compare-Version $local_version $latest_version
+        if ($comparison -eq 0) {
+            Write-Output "当前已经是最新版本: $local_version"
+            $update_required = $false
+        } elseif ($comparison -lt 0) {
+            Write-Output "发现新版本: $latest_version，当前版本: $local_version"
+            $update_required = $true
+        } else {
+            Write-Output "本地版本 $local_version 比远程版本 $latest_version 更新，无需更新"
+            $update_required = $false
+        }
+    } catch {
+        Write-Output "版本比较出错，强制更新"
         $update_required = $true
     }
 }

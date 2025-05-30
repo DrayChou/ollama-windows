@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal enabledelayedexpansion
 
 @REM 设置控制台编码为 UTF-8
