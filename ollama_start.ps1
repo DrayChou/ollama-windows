@@ -2,6 +2,42 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
+# 检测显卡信息
+Write-Output "=== 显卡检测 ==="
+try {
+    $gpus = Get-WmiObject -Class Win32_VideoController | Where-Object { $_.Name -notlike "*Basic*" -and $_.Name -notlike "*Generic*" }
+    foreach ($gpu in $gpus) {
+        $memoryGB = [math]::Round($gpu.AdapterRAM / 1GB, 2)
+        Write-Output "显卡: $($gpu.Name)"
+        Write-Output "  厂商: $($gpu.VideoProcessor)"
+        Write-Output "  显存: $memoryGB GB"
+        Write-Output "  驱动版本: $($gpu.DriverVersion)"
+        
+        # 检测是否为 AMD 显卡
+        if ($gpu.Name -match "AMD|Radeon|RX|Vega|RDNA") {
+            Write-Output "  *** 检测到 AMD 显卡 ***"
+            if ($gpu.Name -match "Integrated|APU|Vega [0-9]|Graphics") {
+                Write-Output "  类型: 集成显卡（可能需要特殊配置才能被 Ollama 使用）"
+                Write-Output "  建议: 考虑设置 HSA_OVERRIDE_GFX_VERSION 环境变量"
+            } else {
+                Write-Output "  类型: 独立显卡"
+                Write-Output "  ROCm 支持: 需要安装 AMD ROCm 驱动"
+            }
+        } elseif ($gpu.Name -match "NVIDIA|GeForce|RTX|GTX|Quadro") {
+            Write-Output "  *** 检测到 NVIDIA 显卡 ***"
+            Write-Output "  CUDA 支持: 建议安装 NVIDIA CUDA 驱动"
+        } elseif ($gpu.Name -match "Intel|UHD|Iris") {
+            Write-Output "  *** 检测到 Intel 显卡 ***"
+            Write-Output "  说明: Ollama 通常不支持 Intel 集显"
+        }
+        Write-Output ""
+    }
+} catch {
+    Write-Output "显卡检测失败: $($_.Exception.Message)"
+}
+Write-Output "====================="
+Write-Output ""
+
 # 删除旧的 ollama-latest.zip 文件
 if (Test-Path "ollama-latest.zip") {
     Remove-Item -Force "ollama-latest.zip"
@@ -92,6 +128,14 @@ $env:OLLAMA_MODELS = "$PWD\models"
 
 # 设置环境变量： 设置 host 0.0.0.0
 $env:OLLAMA_HOST = "0.0.0.0"
+
+# 检查是否有 AMD 集显，如果有则设置 HSA_OVERRIDE_GFX_VERSION
+$gpus = Get-WmiObject -Class Win32_VideoController | Where-Object { $_.Name -notlike "*Basic*" -and $_.Name -notlike "*Generic*" }
+$hasAmdIgpu = $gpus | Where-Object { $_.Name -match "AMD.*Graphics|Radeon.*Graphics|Vega [0-9]" }
+if ($hasAmdIgpu) {
+    Write-Output "检测到 AMD 集显，设置 HSA_OVERRIDE_GFX_VERSION 环境变量"
+    $env:HSA_OVERRIDE_GFX_VERSION = "11.0.0"
+}
 
 # 启动 ollama 服务
 Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c .\ollama.exe start"
