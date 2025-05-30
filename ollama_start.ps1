@@ -40,7 +40,7 @@ Write-Output ""
 
 # 删除旧的 ollama-latest.zip 文件
 if (Test-Path "ollama-latest.zip") {
-    Remove-Item -Force "ollama-latest.zip"
+    Write-Output "发现本地压缩包文件，检查是否需要更新..."
 }
 
 # 检查并停止正在运行的 Ollama 实例
@@ -55,14 +55,28 @@ if ($ollama_list_output -match "NAME\s+ID\s+SIZE\s+MODIFIED") {
 $ollama_exists = Test-Path ".\ollama.exe"
 
 # 获取最新版本信息
+Write-Output "获取最新版本信息..."
 $json = Invoke-RestMethod -Uri "https://api.github.com/repos/ollama/ollama/releases/latest"
+
+# 保存 JSON 信息到本地文件
+Write-Output "保存版本信息到本地..."
+$json | ConvertTo-Json -Depth 10 | Out-File -FilePath ".\ollama.jsonc" -Encoding UTF8
+
 $latest_version = $json.tag_name -replace "^v", ""
-$download_url = $json.assets | Where-Object { $_.name -eq "ollama-windows-amd64.zip" } | Select-Object -ExpandProperty browser_download_url
+$windows_asset = $json.assets | Where-Object { $_.name -eq "ollama-windows-amd64.zip" }
+$download_url = $windows_asset.browser_download_url
+$remote_size = $windows_asset.size
+$remote_updated_at = $windows_asset.updated_at
+
+Write-Output "最新版本: $latest_version"
+Write-Output "文件大小: $([math]::Round($remote_size / 1MB, 2)) MB"
+Write-Output "更新时间: $remote_updated_at"
 
 if (-Not $ollama_exists) {
     Write-Output "未找到 ollama.exe，正在下载最新版本..."
     $update_required = $true
-} else {    # 获取本地版本号
+} else {
+    # 获取本地版本号
     $local_version_output = .\ollama.exe --version 2>&1
     
     # 将输出转换为字符串并提取版本号
@@ -108,19 +122,48 @@ if (-Not $ollama_exists) {
     }
 }
 
+# 检查本地压缩包是否已经是最新版本
+if ($update_required -and (Test-Path "ollama-latest.zip")) {
+    $local_zip_info = Get-Item "ollama-latest.zip"
+    $local_size = $local_zip_info.Length
+    
+    Write-Output "检查本地压缩包..."
+    Write-Output "本地文件大小: $([math]::Round($local_size / 1MB, 2)) MB"
+    Write-Output "远程文件大小: $([math]::Round($remote_size / 1MB, 2)) MB"
+    
+    # 如果文件大小一致，认为是同一个文件，跳过下载
+    if ($local_size -eq $remote_size) {
+        Write-Output "本地压缩包已是最新版本，跳过下载"
+        $skip_download = $true
+    } else {
+        Write-Output "本地压缩包大小不匹配，重新下载"
+        Remove-Item -Force "ollama-latest.zip"
+        $skip_download = $false
+    }
+} else {
+    $skip_download = $false
+}
+
 if ($update_required) {
-    # 下载最新版本
-    Invoke-WebRequest -Uri $download_url -OutFile "ollama-latest.zip"
+    if (-not $skip_download) {
+        # 下载最新版本
+        Write-Output "正在下载最新版本..."
+        Invoke-WebRequest -Uri $download_url -OutFile "ollama-latest.zip"
+    }
 
     # 解压到临时目录
-    Expand-Archive -Path "ollama-latest.zip" -DestinationPath ".\temp"
+    Write-Output "正在解压文件..."
+    Expand-Archive -Path "ollama-latest.zip" -DestinationPath ".\temp" -Force
 
     # 替换现有的 ollama.exe
+    Write-Output "正在更新 ollama.exe..."
     Move-Item -Force ".\temp\ollama.exe" ".\ollama.exe"
 
     # 清理临时文件
     Remove-Item -Recurse -Force ".\temp"
     Remove-Item -Force "ollama-latest.zip"
+    
+    Write-Output "更新完成！"
 }
 
 # 设置环境变量： models 目录到当前目录下

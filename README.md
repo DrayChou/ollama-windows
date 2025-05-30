@@ -38,6 +38,16 @@ ollama --version
 ollama list | Select-Object -Skip 2 | ForEach-Object { $name = $_.Split()[0]; Write-Host "Pulling model: $name"; ollama pull $name }
 ```
 
+### 下载最新的 jsonc
+
+```powershell
+Invoke-RestMethod -Uri "https://api.github.com/repos/ollama/ollama/releases/latest" | ConvertTo-Json -Depth 10 > .\ollama.jsonc
+```
+
+```bash
+curl -s https://api.github.com/repos/ollama/ollama/releases/latest > .\ollama.jsonc
+```
+
 ## 贡献
 
 欢迎提交问题和请求。如果您有任何建议或改进，请随时提交 Pull Request。
