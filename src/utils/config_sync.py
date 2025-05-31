@@ -65,10 +65,32 @@ class ConfigSyncManager:
             with open(self.ps_script_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
+            # 首先查找 $modelsPath 的定义
+            models_path_value = None
+            lines = content.split('\n')
+            for line in lines:
+                line = line.strip()
+                if line.startswith('$modelsPath') and '=' in line:
+                    try:
+                        # 提取 $modelsPath 的值
+                        _, value_part = line.split('=', 1)
+                        # 处理 Join-Path $PWD "models" 这样的表达式
+                        value_part = value_part.strip()
+                        if 'Join-Path $PWD "models"' in value_part:
+                            # 计算实际路径：当前脚本目录 + models
+                            script_dir = self.ps_script_path.parent
+                            models_path_value = str(script_dir / "models")
+                        elif value_part.startswith('"') and value_part.endswith('"'):
+                            models_path_value = value_part.strip('"')
+                        else:
+                            models_path_value = value_part
+                        break
+                    except ValueError:
+                        continue
+            
             # 查找环境变量设置模式
             # 匹配类似 $env:OLLAMA_HOST = "127.0.0.1:11434" 的模式
             # 使用简单的字符串处理替代复杂正则
-            lines = content.split('\n')
             for line in lines:
                 line = line.strip()
                 if line.startswith('$env:') and '=' in line:
@@ -76,8 +98,13 @@ class ConfigSyncManager:
                         # 分割环境变量名和值
                         env_part, value_part = line.split('=', 1)
                         var_name = env_part.replace('$env:', '').strip()
-                        # 移除引号
+                        # 移除引号和空格
                         var_value = value_part.strip().strip('"\'')
+                        
+                        # 特殊处理 OLLAMA_MODELS 中的 $modelsPath
+                        if var_name == "OLLAMA_MODELS" and var_value == "$modelsPath" and models_path_value:
+                            var_value = models_path_value
+                        
                         if var_name in self.supported_env_vars and var_value:
                             config[var_name] = var_value
                     except ValueError:
@@ -99,6 +126,11 @@ class ConfigSyncManager:
                                 var_name, var_value = var_part.split('=', 1)
                                 var_name = var_name.strip()
                                 var_value = var_value.strip()
+                                
+                                # 特殊处理 OLLAMA_MODELS 中的 $modelsPath
+                                if var_name == "OLLAMA_MODELS" and var_value == "$modelsPath" and models_path_value:
+                                    var_value = models_path_value
+                                
                                 if var_name in self.supported_env_vars and var_value:
                                     config[var_name] = var_value
                     except (ValueError, IndexError):
@@ -166,9 +198,16 @@ class ConfigSyncManager:
                     if line_stripped.startswith(f'$env:{var_name}') or line_stripped.startswith(f'# $env:{var_name}'):
                         var_value = config.get(var_name, "")
                         if var_value:
-                            updated_lines.append(f'$env:{var_name} = "{var_value}"')
+                            # 特殊处理 OLLAMA_MODELS，保持使用 $modelsPath 变量
+                            if var_name == "OLLAMA_MODELS":
+                                updated_lines.append(f'$env:{var_name} = $modelsPath')
+                            else:
+                                updated_lines.append(f'$env:{var_name} = "{var_value}"')
                         else:
-                            updated_lines.append(f'# $env:{var_name} = ""')
+                            if var_name == "OLLAMA_MODELS":
+                                updated_lines.append(f'# $env:{var_name} = $modelsPath')
+                            else:
+                                updated_lines.append(f'# $env:{var_name} = ""')
                         line_updated = True
                         break
             
@@ -178,7 +217,11 @@ class ConfigSyncManager:
                     if f'set {var_name}=' in line_stripped or f'# "set {var_name}=' in line_stripped:
                         var_value = config.get(var_name, "")
                         if var_value:
-                            updated_lines.append(f'"set {var_name}={var_value}" >> "$batFile"')
+                            # 特殊处理 OLLAMA_MODELS，使用动态路径
+                            if var_name == "OLLAMA_MODELS":
+                                updated_lines.append(f'"set {var_name}=$modelsPath" >> "$batFile"')
+                            else:
+                                updated_lines.append(f'"set {var_name}={var_value}" >> "$batFile"')
                         else:
                             updated_lines.append(f'# "set {var_name}=" >> "$batFile"')
                         line_updated = True
@@ -203,27 +246,39 @@ class ConfigSyncManager:
                 # 在环境变量设置区域添加
                 env_section_found = False
                 for i, line in enumerate(updated_lines):
-                    if '# 设置环境变量' in line:
+                    if '# 设置环境变量' in line or '配置 Ollama 环境变量' in line:
                         # 在此区域后添加新变量
-                        updated_lines.insert(i + 1, f'$env:{var_name} = "{config[var_name]}"')
+                        if var_name == "OLLAMA_MODELS":
+                            updated_lines.insert(i + 1, f'$env:{var_name} = $modelsPath')
+                        else:
+                            updated_lines.insert(i + 1, f'$env:{var_name} = "{config[var_name]}"')
                         env_section_found = True
                         break
                 
                 if not env_section_found:
                     # 如果没找到环境变量区域，在开头添加
-                    updated_lines.insert(0, f'$env:{var_name} = "{config[var_name]}"')
+                    if var_name == "OLLAMA_MODELS":
+                        updated_lines.insert(0, f'$env:{var_name} = $modelsPath')
+                    else:
+                        updated_lines.insert(0, f'$env:{var_name} = "{config[var_name]}"')
                 
                 # 在批处理文件区域添加对应的写入命令
                 bat_section_found = False
                 for i, line in enumerate(updated_lines):
                     if '# 写入环境变量到批处理文件' in line:
-                        updated_lines.insert(i + 1, f'"set {var_name}={config[var_name]}" >> "$batFile"')
+                        if var_name == "OLLAMA_MODELS":
+                            updated_lines.insert(i + 1, f'"set {var_name}=$modelsPath" >> "$batFile"')
+                        else:
+                            updated_lines.insert(i + 1, f'"set {var_name}={config[var_name]}" >> "$batFile"')
                         bat_section_found = True
                         break
                 
                 if not bat_section_found:
                     # 如果没找到批处理区域，在末尾添加
-                    updated_lines.append(f'"set {var_name}={config[var_name]}" >> "$batFile"')
+                    if var_name == "OLLAMA_MODELS":
+                        updated_lines.append(f'"set {var_name}=$modelsPath" >> "$batFile"')
+                    else:
+                        updated_lines.append(f'"set {var_name}={config[var_name]}" >> "$batFile"')
         
         return '\n'.join(updated_lines)
     
