@@ -1,0 +1,54 @@
+# Ollama Manager 依赖包
+# 核心依赖
+requests>=2.28.0
+psutil>=5.9.0
+
+# GUI 相关（tkinter 是 Python 标准库的一部分，无需安装）
+# 但我们可以添加一些增强 GUI 的可选包
+pillow>=9.0.0  # 图像处理，用于图标和界面美化
+
+# 系统信息获取
+wmi>=1.5.1; sys_platform == "win32"  # Windows 系统信息，仅在 Windows 上安装
+
+# 网络和 HTTP 相关
+urllib3>=1.26.0
+certifi>=2022.0.0
+
+# JSON 和配置处理（Python 标准库已包含 json，这里列出是为了完整性）
+# json 是标准库的一部分
+
+# 日志和调试
+# logging 是标准库的一部分
+
+# 文件和路径处理
+# os, pathlib 是标准库的一部分
+
+# 线程和并发
+# threading 是标准库的一部分
+
+# 时间和日期
+# datetime 是标准库的一部分
+
+# 正则表达式
+# re 是标准库的一部分
+
+# 子进程管理
+# subprocess 是标准库的一部分
+
+# 可选依赖（用于增强功能）
+# 这些包不是必需的，但可以提供额外功能
+
+# 可选依赖（根据需要安装）
+# httpx>=0.24.0  # 可选的HTTP客户端，性能更好
+# orjson>=3.8.0  # 可选的JSON库，性能更好
+# pystray>=0.19.0  # 系统托盘支持
+# pyyaml>=6.0  # YAML配置文件支持
+# toml>=0.10.0  # TOML配置文件支持
+# cryptography>=3.4.0  # 加密功能支持
+Pillow>=9.0.0  # 图像处理库，用于图标转换
+
+# 开发和调试工具（仅开发时需要）
+# pytest>=7.0.0  # 测试框架
+# black>=22.0.0  # 代码格式化
+# flake8>=4.0.0  # 代码检查
+# mypy>=0.950  # 类型检查

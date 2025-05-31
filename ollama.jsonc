@@ -65,7 +65,7 @@
                        "state":  "uploaded",
                        "size":  23481937,
                        "digest":  null,
-                       "download_count":  91,
+                       "download_count":  93,
                        "created_at":  "2025-05-30T00:29:59Z",
                        "updated_at":  "2025-05-30T00:30:02Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-darwin.tgz"
@@ -101,7 +101,7 @@
                        "state":  "uploaded",
                        "size":  185211614,
                        "digest":  null,
-                       "download_count":  50002,
+                       "download_count":  51774,
                        "created_at":  "2025-05-30T00:29:59Z",
                        "updated_at":  "2025-05-30T00:30:22Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/Ollama-darwin.zip"
@@ -137,7 +137,7 @@
                        "state":  "uploaded",
                        "size":  1335651295,
                        "digest":  null,
-                       "download_count":  707,
+                       "download_count":  750,
                        "created_at":  "2025-05-30T00:29:59Z",
                        "updated_at":  "2025-05-30T00:32:33Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-linux-amd64-rocm.tgz"
@@ -173,7 +173,7 @@
                        "state":  "uploaded",
                        "size":  1700593848,
                        "digest":  null,
-                       "download_count":  11137,
+                       "download_count":  11567,
                        "created_at":  "2025-05-30T00:29:59Z",
                        "updated_at":  "2025-05-30T00:32:39Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-linux-amd64.tgz"
@@ -209,7 +209,7 @@
                        "state":  "uploaded",
                        "size":  455385316,
                        "digest":  null,
-                       "download_count":  58,
+                       "download_count":  60,
                        "created_at":  "2025-05-30T00:30:03Z",
                        "updated_at":  "2025-05-30T00:30:23Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-linux-arm64-jetpack5.tgz"
@@ -245,7 +245,7 @@
                        "state":  "uploaded",
                        "size":  362228618,
                        "digest":  null,
-                       "download_count":  101,
+                       "download_count":  104,
                        "created_at":  "2025-05-30T00:30:22Z",
                        "updated_at":  "2025-05-30T00:30:46Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-linux-arm64-jetpack6.tgz"
@@ -281,7 +281,7 @@
                        "state":  "uploaded",
                        "size":  1695723335,
                        "digest":  null,
-                       "download_count":  794,
+                       "download_count":  839,
                        "created_at":  "2025-05-30T00:30:24Z",
                        "updated_at":  "2025-05-30T00:31:58Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-linux-arm64.tgz"
@@ -317,7 +317,7 @@
                        "state":  "uploaded",
                        "size":  443076896,
                        "digest":  null,
-                       "download_count":  94,
+                       "download_count":  95,
                        "created_at":  "2025-05-30T00:30:47Z",
                        "updated_at":  "2025-05-30T00:31:21Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-windows-amd64-rocm.zip"
@@ -353,7 +353,7 @@
                        "state":  "uploaded",
                        "size":  1692772491,
                        "digest":  null,
-                       "download_count":  830,
+                       "download_count":  845,
                        "created_at":  "2025-05-30T00:31:21Z",
                        "updated_at":  "2025-05-30T00:32:25Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-windows-amd64.zip"
@@ -389,7 +389,7 @@
                        "state":  "uploaded",
                        "size":  21546203,
                        "digest":  null,
-                       "download_count":  80,
+                       "download_count":  82,
                        "created_at":  "2025-05-30T00:31:59Z",
                        "updated_at":  "2025-05-30T00:32:00Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/ollama-windows-arm64.zip"
@@ -425,7 +425,7 @@
                        "state":  "uploaded",
                        "size":  1028178288,
                        "digest":  null,
-                       "download_count":  84705,
+                       "download_count":  88790,
                        "created_at":  "2025-05-30T00:29:59Z",
                        "updated_at":  "2025-05-30T00:32:16Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/OllamaSetup.exe"
@@ -461,7 +461,7 @@
                        "state":  "uploaded",
                        "size":  1018,
                        "digest":  null,
-                       "download_count":  108,
+                       "download_count":  111,
                        "created_at":  "2025-05-30T00:32:01Z",
                        "updated_at":  "2025-05-30T00:32:01Z",
                        "browser_download_url":  "https://github.com/ollama/ollama/releases/download/v0.9.0/sha256sum.txt"
@@ -472,14 +472,14 @@
     "body":  "![ollama thinking](https://github.com/user-attachments/assets/312b121c-4261-44a5-a3a0-4883c1704bcf)\r\n\r\n## New models\r\n- [DeepSeek-R1-0528](https://ollama.com/library/deepseek-r1:8b): A new version of DeepSeek-R1 with significantly improved depth of reasoning and inference capabilities.\r\n\r\n```\r\nollama pull deepseek-r1\r\n```\r\n\r\n## Thinking mode\r\n\r\nOllama now supports thinking mode.\r\n\r\nTo enable thinking mode in Ollama, first download models that support thinking:\r\n\r\n```\r\nollama pull deepseek-r1\r\nollama pull qwen3\r\n```\r\n\r\n### Thinking\r\n\r\nWhen running a model that supports thinking, Ollama will now display the model\u0027s thoughts:\r\n\r\n```\r\n% ollama run deepseek-r1\r\n\u003e\u003e\u003e How many Rs are in strawberry\r\nThinking...\r\nFirst, I need to understand what the question is asking. It\u0027s asking how many letters \u0027R\u0027 are present in the word \"strawberry.\"\r\n\r\nNext, I\u0027ll examine each letter in the word individually.\r\n\r\nI\u0027ll start from the beginning and count every occurrence of the letter \u0027R.\u0027\r\n\r\nAfter reviewing all the letters, I determine that there are three instances where the letter \u0027R\u0027 appears in the word \"strawberry.\"\r\n...done thinking.\r\n\r\nThere are three **Rs** in the word **\"strawberry\"**.\r\n```\r\n\r\nIn Ollama\u0027s API, a model\u0027s thinking is now returned as a separate `thinking` field for easy parsing:\r\n\r\n```\r\n{\r\n  \"message\": {\r\n    \"role\": \"assistant\",\r\n    \"thinking\": \"First, I need to understand what the question is asking. It\u0027s asking how many letters \u0027R\u0027 are present in the word \"strawberry...\",\r\n    \"content\": \"There are **3** instances of the letter **R** in the word **\"strawberry.\"**\"\r\n  }\r\n}\r\n```\r\n\r\n### Turning thinking on and off\r\n\r\nIn the API, thinking can be enabled by passing `\"think\": true` and disabled by passing `\"think\": false`\r\n\r\n```\r\ncurl http://localhost:11434/api/chat -d \u0027{\r\n  \"model\": \"deepseek-r1\",\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Why is the sky blue?\"\r\n    },\r\n  ],\r\n  \"think\": true\r\n}\u0027\r\n```\r\n\r\nIn Ollama\u0027s CLI, use `/set think` and `/set nothink` to enable and disable thinking.\r\n\r\n## What\u0027s Changed\r\n* Add thinking mode support to Ollama\r\n\r\n\r\n**Full Changelog**: https://github.com/ollama/ollama/compare/v0.8.0...v0.9.0",
     "reactions":  {
                       "url":  "https://api.github.com/repos/ollama/ollama/releases/221722484/reactions",
-                      "total_count":  175,
-                      "+1":  86,
+                      "total_count":  180,
+                      "+1":  88,
                       "-1":  0,
                       "laugh":  0,
-                      "hooray":  29,
+                      "hooray":  31,
                       "confused":  0,
                       "heart":  24,
-                      "rocket":  26,
+                      "rocket":  27,
                       "eyes":  10
                   }
 }

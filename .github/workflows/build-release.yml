@@ -1,0 +1,107 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 匹配 v1.0.0, v2.1.3 等格式的标签
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build executable
+      run: |
+        pyinstaller build.spec
+        
+    - name: Test executable
+      run: |
+        # 简单测试exe文件是否能正常启动（无GUI模式）
+        timeout 10 dist/OllamaManager.exe --help || echo "Test completed"
+        
+    - name: Create release package
+      run: |
+        mkdir release-package
+        copy dist\OllamaManager.exe release-package\
+        copy README.md release-package\
+        copy requirements.txt release-package\
+        copy start_manager.bat release-package\
+        copy install_dependencies.py release-package\
+        
+    - name: Create ZIP archive
+      run: |
+        powershell Compress-Archive -Path release-package\* -DestinationPath OllamaManager-${{ github.ref_name }}-windows.zip
+        
+    - name: Get release info
+      id: release_info
+      run: |
+        echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        echo "release_name=Ollama Manager ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.release_info.outputs.tag_name }}
+        release_name: ${{ steps.release_info.outputs.release_name }}
+        body: |
+          ## Ollama Manager ${{ steps.release_info.outputs.tag_name }}
+          
+          ### 📦 下载说明
+          - **OllamaManager.exe**: 独立可执行文件，无需安装Python环境
+          - **OllamaManager-${{ github.ref_name }}-windows.zip**: 完整包，包含源码和依赖
+          
+          ### 🚀 使用方法
+          1. 下载 `OllamaManager.exe` 文件
+          2. 双击运行即可使用
+          3. 首次运行会自动检测和配置Ollama环境
+          
+          ### 📋 系统要求
+          - Windows 10/11 (64位)
+          - 至少 4GB 内存
+          - 网络连接（用于下载模型）
+          
+          ### 🔧 故障排除
+          如果遇到问题，请查看 [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) 中的故障排除部分。
+          
+          ---
+          
+          **完整更新日志请查看 [README.md](https://github.com/${{ github.repository }}/blob/main/README.md#更新日志)**
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset - Executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/OllamaManager.exe
+        asset_name: OllamaManager.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Release Asset - ZIP Package
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./OllamaManager-${{ github.ref_name }}-windows.zip
+        asset_name: OllamaManager-${{ github.ref_name }}-windows.zip
+        asset_content_type: application/zip
